@@ -20,13 +20,24 @@ taskkill /f /IM iexplorer.exe
 title executando Limpeza...
 
 cls 
-set profiles=%USERPROFILE%
+%homedrive%
 
-for /f "tokens=* delims= " %%u in ('dir /b/ad') do (
+cd %USERPROFILE%
+cd..
+set profiles=%cd%
+
+for /f "tokens=* delims= " %%u in (dir /b/ad) do(
     
     erase "%LOCALAPPDATA%\Microsoft\Windows\Tempor~1\*.*" /f /s /q
     for /D %%i in ("%LOCALAPPDATA%\Microsoft\Windows\Tempor~1\*") do RD /S /Q "%%i"
-    
+    @rem Clear Google Chrome cache (tirei porque está apagando favoritos e perfil do chrome)
+    rem erase "%LOCALAPPDATA%\Google\Chrome\User Data\*.*" /f /s /q
+    rem for /D %%i in ("%LOCALAPPDATA%\Google\Chrome\User Data\*") do RD /S /Q "%%i"
+
+    @rem Clear Firefox cache (tirei porque está apagando favoritos e perfil do firefox)
+    rem erase "%LOCALAPPDATA%\Mozilla\Firefox\Profiles\*.*" /f /s /q
+    rem for /D %%i in ("%LOCALAPPDATA%\Mozilla\Firefox\Profiles\*") do RD /S /Q "%%i"
+
     cls 
     title Deletando %%u COOKIES. . .
     if exist "%profiles%\%%u\cookies" echo Deletando...
@@ -41,7 +52,7 @@ for /f "tokens=* delims= " %%u in ('dir /b/ad') do (
     if exist "%profiles%\%%u\Local Settings\Temp" rmdir /s /q "%profiles%\%%u\Local Settings\Temp"
 
     cls
-    title Deletando %%u Temp Files. . .
+    tile Deletando %%u Temp Files. . .
     if exist "%profiles%\%%u\AppData\Local\Temp" echo Deletando...
     if exist "%profiles%\%%u\AppData\Local\Temp" cd "%profiles%\%%u\AppData\Local\Temp"
     if exist "%profiles%\%%u\AppData\Local\Temp" del *.* /F /S /Q /A: R /A: H /A: A
@@ -52,8 +63,9 @@ for /f "tokens=* delims= " %%u in ('dir /b/ad') do (
     if exist "%profiles%\%%u\Local Settings\Temporary Internet Files" echo Deletando....
     if exist "%profiles%\%%u\Local Settings\Temporary Internet Files" cd "%profiles%\%%u\Local Settings\Temporary Internet Files"
     if exist "%profiles%\%%u\Local Settings\Temporary Internet Files" del *.* /F /S /Q /A: R /A: H /A: A
-    if exist "%profiles%\%%u\Local Settings\Temporary Internet Files" rmdir /s /q "%profiles%\%%u\Local Settings\Temporary Internet Files"
+    if exist "%profiles%\%%u\Local Settings\Temporary Internet Files" rmdir /s /q "%profiles%\Local Settings\Temporary Internet Files"
 
+    
     cls
     title Deletando %%u Temporary Internet Files. . .
     if exist "%profiles%\%%u\AppData\Local\Microsoft\Windows\Temporary Internet Files" echo Deletando...
@@ -73,14 +85,14 @@ for /f "tokens=* delims= " %%u in ('dir /b/ad') do (
     if exist "%Systemroot%\Temp" echo Deletando....
     if exist "%Systemroot%\Temp" cd "%Systemroot%\Temp"
     if exist "%Systemroot%\Temp" del *.* /F /S /Q /A: R /A: H /A: A
-    if exist "%Systemroot%\Temp" rmdir /s /q "%Systemroot%\Temp"
+    if exist "%Systemroot%\Temp" rmdir /s / "%Systemroot%\Temp"
 
     cls 
     title Deletando %SYSTEMDRIVE%\Temp
     if exist "%SYSTEMDRIVE%\Temp" echo Deletando....
     if exist "%SYSTEMDRIVE%\Temp" cd "%SYSTEMDRIVE%\Temp"
     if exist "%SYSTEMDRIVE%\Temp" del *.* /F /S /Q /A: R /A: H /A: A 
-    if exist "%SYSTEMDRIVE%\Temp" rmdir /s /q "%SYSTEMDRIVE%\Temp"
+    if exist "%SYSTEMDRIVE%\Temp" rmdir /s /q "%Systemroot%\Temp"
 
     cls
     title Deletando %%u CHROME TEMP. . .
@@ -119,7 +131,7 @@ for /f "tokens=* delims= " %%u in ('dir /b/ad') do (
         )
     )
 
-    if exist "C:\Documents and Settings\" (
+    if exist "C:\Documents and Settings\"(
         for /D %%x in ("C:\Documents and Settings\*") do (
             rmdir /s /q "%%x\Local Settings\Temp"
         )
@@ -137,37 +149,52 @@ for /f "tokens=* delims= " %%u in ('dir /b/ad') do (
         )
     )
 
- 
+    title esvaziando lixeira
+    echo off
+    forfiles /P C:\$Recycle.Bin /c "cmd /c del @path /q & rd @path /s /q"
+    forfiles /P C:\recycler /c "cmd /c del @path /q & rd @path /s /q"
+    
+  rem  title apagando arquivos temporarios
+  rem  echo off
+  rem  forfiles /P C:\Windows\Temp /c "cmd /c del @path /q & rd @path /s /q"
+    forfiles /P C:\Users\User\AppData\Local\Temp /c "cmd /c del @path /q & rd @path /s /q"
 
-rmdir /s /q "c:\MSOcache"
+    forfiles /P C:\Users\User\AppData\Local\Google\Chrome\User Data\Default\Cache /c "cmd /c del @path /q & rd @path /s /q"
 
-del c:*.tmp /q/f
-del c:*.log /q/f
-del c:windows*.tmp /q/f
-del c:windows*.log /q/f
-del c:windowstemp*.* /s /q/f
-del c:windowstempor~1*.* /s /q/f
-attrib -h c:*.sqm
-del c:*.sqm /q/f
-del "%temp%*.*" /s/q/f
-del "%userprofile%appdatalocaltempor~1*.*" /s/q/f
-del "%userprofile%appdatalocalmicrosoftwindowstempor~1*.*" /s/q/f
+    rem coloquei a msocache tambem que apaga o cd do office
+    rmdir /s /q “c:/MSOcache”
 
-DEL /F/S/Q %WINDIR%\*.TMP
-DEL /F/S/Q %WINDIR%\TEMP\*.*
-FOR /D %%d IN ("%WINDIR%\TEMP\*.*") DO RD /S /Q "%%d"
-DEL /F/S/Q %WINDIR%\Prefetch\*.*
-DEL /F/S/Q %APPDATA%\Skype\My Skype Received Files\*.*
+    del c:*.tmp /q/f
+    del c:*.log /q/f
+    del c:windows*.tmp /q/f
+    del c:windows*.log /q/f
+    del c:windowstemp*.* /s /q/f
+    del c:windowstempor~1*.* /s /q/f
+    attrib -h c:*.sqm
+    del c:*.sqm /q/f
+    del "%temp%*.*" /s/q/f
+    del "%userprofile%appdatalocaltempor~1*.*" /s/q/f
+    del "%userprofile%appdatalocalmicrosoftwindowstempor~1*.*" /s/q/f
 
+    DEL /F/S/Q %WINDIR%\*.TMP
+    DEL /F/S/Q %WINDIR%\TEMP\*.*
+    FOR /D %%d IN ("%WINDIR%\TEMP\*.*") DO RD /S /Q "%%d"
+    DEL /F/S/Q %WINDIR%\Prefetch\*.*
+    DEL /F/S/Q %APPDATA%\Skype\My Skype Received Files\*.*
 
-Title Procedimento Concluído
+    @echo off
+    start rd /s /q C:$Recycle.Bin
+    rd /s /q D:$Recycle.Bin
 
-@echo off 
-cls
-@echo.
-@echo **************************************
-@echo ***         Parabéns               ***
-@echo ***   Sua Máquina está limpa!      ***
-@echo **************************************
-@echo.
-pause
+    Title Procedimento Concluido
+
+    @echo off 
+    cls
+    @echo.
+    @echo **************************************
+    @echo ***         Parabens               ***
+    @echo ***   Sua Maquina esta limpa!      ***
+    @echo **************************************
+    @echo.
+    pause
+)
